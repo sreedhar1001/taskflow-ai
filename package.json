@@ -1,0 +1,22 @@
+{
+  "name": "taskflow-ai",
+  "version": "1.0.0",
+  "description": "AI productivity app with live architecture diagram — Replit Internship Challenge",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@google/genai": "^2.29.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.19.2",
+    "sql.js": "^1.12.0",
+    "uuid": "^10.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

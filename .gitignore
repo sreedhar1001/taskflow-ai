@@ -1,0 +1,4 @@
+node_modules/
+taskflow.db
+.env
+*.log

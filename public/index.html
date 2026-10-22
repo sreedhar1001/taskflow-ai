@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow AI — See Your AI Think</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Mermaid for live diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">⚡ TaskFlow AI</div>
+    <div class="tagline">AI Productivity · Live Architecture Diagram</div>
+  </div>
+  <div class="circuit-badge closed" id="circuit-badge">
+    <span>●</span> Circuit Closed
+  </div>
+</header>
+
+<div class="main-layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <h3>New Task</h3>
+      <form class="task-form" id="task-form">
+        <textarea
+          id="goal-input"
+          placeholder="Describe a task for AI to complete… e.g. 'Write a weekly summary email for a software team'"
+          rows="4"
+        ></textarea>
+        <button type="submit" class="btn btn-primary" id="submit-btn">
+          ▶ Run Task
+        </button>
+      </form>
+    </div>
+
+    <div class="sidebar-section" style="flex-shrink:0">
+      <h3>Recent Runs</h3>
+    </div>
+    <div class="run-list" id="run-list">
+      <!-- Populated by JS -->
+    </div>
+  </aside>
+
+  <!-- ── Main content ── -->
+  <div class="content">
+    <div class="tabs">
+      <button class="tab active" data-tab="diagram">🔬 Live Diagram</button>
+      <button class="tab" data-tab="howit">📐 How It Works</button>
+    </div>
+
+    <!-- ── Diagram Tab ── -->
+    <div class="tab-content active" id="tab-diagram">
+      <div id="diagram-panel">
+
+        <!-- Empty state (shown when no run is selected) -->
+        <div class="empty-state" id="empty-state">
+          <div class="icon">🤖</div>
+          <h3>Submit a task to see it live</h3>
+          <p>TaskFlow AI breaks your goal into steps, executes each with Gemini, and lights up this diagram as it goes.</p>
+        </div>
+
+        <!-- Active run view (hidden until a run is selected) -->
+        <div id="run-view" style="display:none; flex-direction:column; gap:1.25rem;">
+
+          <div class="diagram-header">
+            <div>
+              <h2 id="run-goal-title">…</h2>
+              <div style="font-size:0.78rem; color:var(--muted); margin-top:0.2rem" id="run-meta"></div>
+            </div>
+            <button class="btn btn-sm btn-danger" id="retry-btn" style="display:none">↩ Retry Failed Steps</button>
+          </div>
+
+          <div id="phase-banner" class="phase-banner" style="display:none">
+            <span class="step-spinner"></span>
+            <span id="phase-text">Processing…</span>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="progress-bar-wrap" id="progress-wrap" style="display:none">
+            <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+          </div>
+
+          <!-- Live Mermaid diagram -->
+          <div class="mermaid-wrap" id="mermaid-wrap">
+            <div style="color:var(--muted); font-size:0.85rem">Waiting for steps…</div>
+          </div>
+
+          <!-- Step timeline -->
+          <div>
+            <div style="font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:0.75rem">
+              Step Timeline
+            </div>
+            <div class="step-list" id="step-list"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── How It Works Tab ── -->
+    <div class="tab-content" id="tab-howit">
+      <div id="howit-panel">
+
+        <div class="arch-section">
+          <h3>🏗️ Architecture Overview</h3>
+          <p>TaskFlow AI is a full-stack web app. Every component shown below is real and running live.</p>
+          <div class="arch-grid" style="margin-top:1rem">
+            <div class="arch-card">
+              <div class="arch-icon">🌐</div>
+              <h4>Frontend</h4>
+              <p>Vanilla HTML/CSS/JS. Listens to a live Server-Sent Events stream and updates the diagram + step cards in real time.</p>
+            </div>
+            <div class="arch-card">
+              <div class="arch-icon">⚙️</div>
+              <h4>Express API</h4>
+              <p>Node.js server that receives tasks, orchestrates Gemini calls, persists results, and broadcasts SSE events.</p>
+            </div>
+            <div class="arch-card">
+              <div class="arch-icon">🗄️</div>
+              <h4>SQLite DB</h4>
+              <p>Lightweight embedded database. Stores every run and step — including outputs, durations, and retry counts.</p>
+            </div>
+            <div class="arch-card">
+              <div class="arch-icon">🤖</div>
+              <h4>Gemini AI</h4>
+              <p>Powers step decomposition and step execution. Uses <code>gemini-3.8-flash</code> via the official google-genai SDK.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-section">
+          <h3>📡 Real-time Flow</h3>
+          <p>When you submit a goal, here's exactly what happens, end to end:</p>
+          <div class="mermaid-wrap" style="margin-top:0.75rem; padding:1rem">
+            <div id="arch-diagram">Loading diagram…</div>
+          </div>
+        </div>
+
+        <div class="arch-section">
+          <h3>🛡️ Failure Recovery</h3>
+          <p>The app is designed to handle AI failures gracefully at three levels:</p>
+          <div class="arch-grid" style="margin-top:0.75rem">
+            <div class="arch-card">
+              <div class="arch-icon">🔁</div>
+              <h4>Exponential Backoff Retry</h4>
+              <p>Each step retries up to 3 times: after 1s, 2s, and 4s. The step shows "Retrying" live during each attempt.</p>
+            </div>
+            <div class="arch-card">
+              <div class="arch-icon">⚡</div>
+              <h4>Circuit Breaker</h4>
+              <p>After 3 consecutive failures the circuit opens, blocking AI calls for 30s to avoid flooding a failing API.</p>
+            </div>
+            <div class="arch-card">
+              <div class="arch-icon">💾</div>
+              <h4>Partial Progress</h4>
+              <p>Completed steps are saved to SQLite. Retry only re-runs the failed steps — completed work is never lost.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-section">
+          <h3>🔌 Live SSE Protocol</h3>
+          <p>The diagram updates are powered by Server-Sent Events. Here's the event stream your browser receives:</p>
+          <div class="code-block">
+<span class="cm">// 1. Connection to /api/runs/:id/stream</span>
+<span class="cm">// Server sends a snapshot of current state immediately</span>
+event: snapshot
+data: { run: {...}, steps: [...] }
+
+<span class="cm">// 2. Steps are defined after goal parsing</span>
+event: steps_defined
+data: { steps: [{ name, description, status }, ...] }
+
+<span class="cm">// 3. Each step fires updates as it progresses</span>
+event: step_update
+data: { id, index, status: <span class="str">"running"</span> | <span class="str">"retrying"</span> | <span class="str">"completed"</span> | <span class="str">"failed"</span>,
+        output?, error?, durationMs? }
+
+<span class="cm">// 4. Run finishes</span>
+event: run_update
+data: { status: <span class="str">"completed"</span> | <span class="str">"failed"</span> }
+          </div>
+        </div>
+
+        <div class="arch-section">
+          <h3>🗃️ Database Schema</h3>
+          <div class="code-block">
+<span class="cm">-- Every submission is a run</span>
+<span class="kw">CREATE TABLE</span> runs (
+  id          <span class="kw">TEXT</span> <span class="kw">PRIMARY KEY</span>,
+  goal        <span class="kw">TEXT</span>,
+  status      <span class="kw">TEXT</span>,   <span class="cm">-- queued | running | completed | failed</span>
+  created_at  <span class="kw">TEXT</span>,
+  finished_at <span class="kw">TEXT</span>
+);
+
+<span class="cm">-- Each AI step inside a run</span>
+<span class="kw">CREATE TABLE</span> steps (
+  id          <span class="kw">TEXT</span> <span class="kw">PRIMARY KEY</span>,
+  run_id      <span class="kw">TEXT</span> <span class="kw">REFERENCES</span> runs(id),
+  index_num   <span class="kw">INTEGER</span>,
+  name        <span class="kw">TEXT</span>,
+  description <span class="kw">TEXT</span>,
+  status      <span class="kw">TEXT</span>,   <span class="cm">-- queued | running | retrying | completed | failed</span>
+  attempts    <span class="kw">INTEGER</span>,
+  output      <span class="kw">TEXT</span>,
+  error       <span class="kw">TEXT</span>,
+  started_at  <span class="kw">TEXT</span>,
+  finished_at <span class="kw">TEXT</span>,
+  duration_ms <span class="kw">INTEGER</span>
+);
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
